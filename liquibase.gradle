@@ -1,0 +1,54 @@
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean
+import org.springframework.core.io.FileSystemResource
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:2.2'
+        classpath 'org.springframework:spring-beans:6.0.11'
+        classpath 'org.springframework:spring-core:6.0.11'
+    }
+}
+
+configurations {
+    liquibase
+}
+
+task liquibaseDiffChangelog(type: JavaExec) {
+    group = "liquibase"
+    description = "Generates a Liquibase changelog file with database diff"
+
+    classpath = sourceSets.main.runtimeClasspath + configurations.liquibase
+    main = "liquibase.integration.commandline.Main"
+    args = [
+            "--changeLogFile=src/main/resources/db/changelog/liquibase-changelog-${buildTimestamp()}.xml",
+            "--referenceUrl=hibernate:spring:com.smg.product.model?dialect=org.hibernate.dialect.PostgreSQLDialect",
+            "--url=jdbc:postgresql://localhost:5432/smg_new",
+            "--username=postgres",
+            "--password=postgres",
+            "--driver=org.postgresql.Driver",
+            "diffChangeLog"
+    ]
+}
+
+
+def static buildTimestamp() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmmss')
+    return formattedDate
+}
+
+def merge(Map lhs, Map rhs) {
+    return rhs.inject(lhs.clone()) { map, entry ->
+        if (map[entry.key] instanceof Map && entry.value instanceof Map) {
+            map[entry.key] = merge(map[entry.key], entry.value)
+        } else if (map[entry.key] instanceof Collection && entry.value instanceof Collection) {
+            map[entry.key] += entry.value
+        } else {
+            map[entry.key] = entry.value
+        }
+        return map
+    }
+}

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smg_test
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+  liquibase:
+    enabled: true
+    drop-first: true
+  kafka:
+    bootstrap-servers: localhost:29092
+
+logging:
+  level:
+    root: INFO
+    org.springframework: DEBUG
